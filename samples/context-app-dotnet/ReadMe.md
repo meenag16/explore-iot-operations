@@ -145,8 +145,6 @@ Please populate base64 encoded values accordingly if using any other user.
 |----------------------------|-----------------------------------------------------------------------------------------------------|---------|---------------------------------------|---------------|
 | `ENDPOINT_TYPE`            | Specifies the type of endpoint to connect to. Values are "http" or "sql".                           | string  | Yes                                   | None          |
 | `AUTH_TYPE`                | Defines the authentication method. Values are "httpbasic".                                          | string  | Yes                                   | None          |
-| `HTTP_USERNAME`            | The username for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
-| `HTTP_PASSWORD`            | The password for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
 | `REQUEST_INTERVAL_SECONDS` | The interval in seconds between consecutive requests to the data source.                            | integer | No                                    | 5             |
 | `DSS_KEY`                  | A key used to identify or categorize the data being processed.                                      | string  | Yes                                   | None          |
 | `MQTT_HOST`                | The IP address or hostname of the MQTT broker.                                                      | string  | Yes                                   | None          |
@@ -162,8 +160,6 @@ Please populate base64 encoded values accordingly if using any other user.
 |----------------------------|-----------------------------------------------------------------------------------------------------|---------|---------------------------------------|---------------|
 | `ENDPOINT_TYPE`            | Specifies the type of endpoint to connect to. Values are "http" or "sql".                           | string  | Yes                                   | None          |
 | `AUTH_TYPE`                | Defines the authentication method. Values are "sqlbasic".                                           | string  | Yes                                   | None          |
-| `SQL_USERNAME`             | The username for SQL basic authentication.                         | string    | "sa" for default user | Yes (if `ENDPOINT_TYPE` is `sql` and NOT default user)| console-app-secret |
-| `SQL_PASSWORD`             | The password for SQL basic authentication.                         | string    | None                  | Yes (if `ENDPOINT_TYPE` is `sql`)                     | console-app-secret |
 | `REQUEST_INTERVAL_SECONDS` | The interval in seconds between consecutive requests to the data source.                            | integer | No                                    | 5             |
 | `DSS_KEY`                  | A key used to identify or categorize the data being processed.                                      | string  | Yes                                   | None          |
 | `MQTT_HOST`                | The IP address or hostname of the MQTT broker.                                                      | string  | Yes                                   | None          |
@@ -181,6 +177,10 @@ Please refer to the official [MQTT broker documentation](https://learn.microsoft
 
 | Environment Variable       | What It Means                                                      | Data Type | Default Value         | Is It Required                                        | Obtained From      |
 |----------------------------|--------------------------------------------------------------------|-----------|-----------------------|-------------------------------------------------------|--------------------|
+| `HTTP_USERNAME`            | The username for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
+| `HTTP_PASSWORD`            | The password for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
+| `SQL_USERNAME`             | The username for SQL basic authentication.                         | string    | "sa" for default user | Yes (if `ENDPOINT_TYPE` is `sql` and NOT default user)| console-app-secret |
+| `SQL_PASSWORD`             | The password for SQL basic authentication.                         | string    | None                  | Yes (if `ENDPOINT_TYPE` is `sql`)                     | console-app-secret |
 | `CA_FILE_PATH`             | The path to the CA certificate file for TLS verification.          | string    | None                  | Yes (if TLS is used)                                  | test-ca            |
 | `SAT_TOKEN_PATH`           | The path to the service account token for secure authentication.   | string    | None                  | Yes (if auth is used)                                 | sat-token-secret   |
 | `CLIENT_CERT_FILE`         | The path to the client certificate file for authentication.        | string    | None                  | Yes (if TLS and auth are used)                        | x509-secret        |
