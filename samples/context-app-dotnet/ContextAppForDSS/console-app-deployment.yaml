@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: console-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: console-app-deployment
+  template:
+    metadata:
+      labels:
+        app: console-app-deployment
+    spec:
+      containers:
+      - name: console-app-deployment
+        image: context-app-for-dss # Image imported directly to the cluster
+        imagePullPolicy: Never # Image imported directly to the cluster
+        envFrom:
+        - configMapRef:
+            name: console-app-config
+        env:
+        - name: HTTP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: console-app-secret
+              key: httpusername
+        - name: HTTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: console-app-secret
+              key: httppassword

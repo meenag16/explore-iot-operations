@@ -16,19 +16,20 @@ spec:
     spec:
       containers:
       - name: my-backend-api-d
-        image: my-registry/my-backend-api
+        image: my-backend-api # Image imported directly to the cluster
+        imagePullPolicy: Never # Image imported directly to the cluster
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-backend-api-s
+  name: my-backend-api-s # This Service would be accessible at my-backend-api-s.default.svc.cluster.local:80 (<service-name>.<namespace>.svc.cluster.local:<port>)
   labels:
     app: my-backend-api-d 
 spec:
   type: ClusterIP
   ports:
-  - port: 80
-    protocol: TCP
-    targetPort: 80
+  - protocol: TCP
+    port: 80  # This is the port that the Service listens on
+    targetPort: 80  # This is the port that the Pod labeled my-backend-api-d listens on
   selector:
-    app: my-backend-api-d
+    app: my-backend-api-d # This is the label of the Pod that this Service points to

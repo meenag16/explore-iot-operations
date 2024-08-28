@@ -5,11 +5,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PublishProfile>DefaultContainer</PublishProfile>
+    <!--<PublishProfile>DefaultContainer</PublishProfile>
     <ContainerImageName>context-app-for-dss</ContainerImageName>
     <ContainerRegistry>k3d-registry.localhost:5500</ContainerRegistry>
     <IsPublishable>true</IsPublishable>
-    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>-->
   </PropertyGroup>
 
   <ItemGroup>

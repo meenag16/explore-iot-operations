@@ -14,11 +14,9 @@ The service is a simple Express.js server that listens on port 80 and returns a 
 The service has been containerized and can be deployed to Kubernetes.
 Currently this service works using username and password authentication.
 
-If you are on a k3d cluster, you can use the local registry to push the image. 
-To do this, you need to run the following command to create the registry:
+If you are on a k3d cluster, you can import the local docker image into your cluster directly:
 ```bash
-k3d registry create registry.localhost --port 5500
-k3d cluster create -p '1883:1883@loadbalancer' -p '8883:8883@loadbalancer' --registry-use k3d-registry.localhost:5500
+k3d cluster create myClusterMq1 -p '1883:1883@loadbalancer' -p '8883:8883@loadbalancer'
 ```
 
 All commands assume that a local registry is being used. If not, please replace the registry name with the chosen registry.
@@ -28,8 +26,8 @@ All commands assume that a local registry is being used. If not, please replace 
 1. Navigate to the `DummyService` directory
 2. Build and push the container image using the following command with:
 	```bash
-    docker build -t k3d-registry.localhost:5500/my-backend-api:latest .
-	docker push k3d-registry.localhost:5500/my-backend-api:latest 
+    docker build -t my-backend-api -f Dockerfile .
+	k3d image import my-backend-api:latest -c myClusterMq1 
 	```
 3. Deploy the Node.js Service to Kubernetes by running the following command. Please use the correct image name in the yaml file.
 	```bash
@@ -45,7 +43,7 @@ All commands assume that a local registry is being used. If not, please replace 
     Server listening on port 80
 	```
 
-### 2. Run the SQL Server
+### 2. Run the SQL Server (NOT DONE)
 
 1. Navigate to the `SampleSQL` directory
 2. Apply a config map which contains a set up script to create a database named `MySampleDB`, table named `CountryMeasurements` and insert some sample rows in the table.
@@ -139,7 +137,7 @@ While being in the folder `ContextAppForDSS` directory there are 2 yamls that ne
 If using SQL the username is always "sa" when using the default user and the password is the one set in the previous steps.
 Please populate base64 encoded values accordingly if using any other user.
 
-2.`console-app-configmap.yaml` : This file contains the configuration for the Context App for State Store. The following values need to be updated:
+2. `console-app-configmap.yaml` : This file contains the configuration for the Context App for State Store. The following values need to be updated:
 
 #### HTTP TABLE
 
@@ -147,6 +145,8 @@ Please populate base64 encoded values accordingly if using any other user.
 |----------------------------|-----------------------------------------------------------------------------------------------------|---------|---------------------------------------|---------------|
 | `ENDPOINT_TYPE`            | Specifies the type of endpoint to connect to. Values are "http" or "sql".                           | string  | Yes                                   | None          |
 | `AUTH_TYPE`                | Defines the authentication method. Values are "httpbasic".                                          | string  | Yes                                   | None          |
+| `HTTP_USERNAME`            | The username for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
+| `HTTP_PASSWORD`            | The password for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
 | `REQUEST_INTERVAL_SECONDS` | The interval in seconds between consecutive requests to the data source.                            | integer | No                                    | 5             |
 | `DSS_KEY`                  | A key used to identify or categorize the data being processed.                                      | string  | Yes                                   | None          |
 | `MQTT_HOST`                | The IP address or hostname of the MQTT broker.                                                      | string  | Yes                                   | None          |
@@ -162,6 +162,8 @@ Please populate base64 encoded values accordingly if using any other user.
 |----------------------------|-----------------------------------------------------------------------------------------------------|---------|---------------------------------------|---------------|
 | `ENDPOINT_TYPE`            | Specifies the type of endpoint to connect to. Values are "http" or "sql".                           | string  | Yes                                   | None          |
 | `AUTH_TYPE`                | Defines the authentication method. Values are "sqlbasic".                                           | string  | Yes                                   | None          |
+| `SQL_USERNAME`             | The username for SQL basic authentication.                         | string    | "sa" for default user | Yes (if `ENDPOINT_TYPE` is `sql` and NOT default user)| console-app-secret |
+| `SQL_PASSWORD`             | The password for SQL basic authentication.                         | string    | None                  | Yes (if `ENDPOINT_TYPE` is `sql`)                     | console-app-secret |
 | `REQUEST_INTERVAL_SECONDS` | The interval in seconds between consecutive requests to the data source.                            | integer | No                                    | 5             |
 | `DSS_KEY`                  | A key used to identify or categorize the data being processed.                                      | string  | Yes                                   | None          |
 | `MQTT_HOST`                | The IP address or hostname of the MQTT broker.                                                      | string  | Yes                                   | None          |
@@ -175,14 +177,10 @@ Please populate base64 encoded values accordingly if using any other user.
 NOTE : If using TLS then either service account token or x509 certificates needs to be created. 
 Please refer to the official [MQTT broker documentation](https://learn.microsoft.com/en-us/azure/iot-operations/manage-mqtt-broker/howto-configure-tls-auto?tabs=test)
 
-3. Some additional ENV VARS
+3. Some additional ENV VARS (NOT DONE)
 
 | Environment Variable       | What It Means                                                      | Data Type | Default Value         | Is It Required                                        | Obtained From      |
 |----------------------------|--------------------------------------------------------------------|-----------|-----------------------|-------------------------------------------------------|--------------------|
-| `HTTP_USERNAME`            | The username for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
-| `HTTP_PASSWORD`            | The password for HTTP basic authentication.                        | string    | None                  | Yes (if `ENDPOINT_TYPE` is `http`)                    | console-app-secret |
-| `SQL_USERNAME`             | The username for SQL basic authentication.                         | string    | "sa" for default user | Yes (if `ENDPOINT_TYPE` is `sql` and NOT default user)| console-app-secret |
-| `SQL_PASSWORD`             | The password for SQL basic authentication.                         | string    | None                  | Yes (if `ENDPOINT_TYPE` is `sql`)                     | console-app-secret |
 | `CA_FILE_PATH`             | The path to the CA certificate file for TLS verification.          | string    | None                  | Yes (if TLS is used)                                  | test-ca            |
 | `SAT_TOKEN_PATH`           | The path to the service account token for secure authentication.   | string    | None                  | Yes (if auth is used)                                 | sat-token-secret   |
 | `CLIENT_CERT_FILE`         | The path to the client certificate file for authentication.        | string    | None                  | Yes (if TLS and auth are used)                        | x509-secret        |
@@ -214,51 +212,54 @@ Some examples of values if using the DummyService or SQL Server:
   SQL_DB_NAME: "MySampleDB"
   SQL_TABLE_NAME: "CountryMeasurements"
 ```
-3. Deploy the above secret and config map before deploying the app. Run the following commands:
+
+4. Deploy the above secret and config map before deploying the app. Run the following commands:
 	```bash
 	kubectl apply -f console-app-secret.yaml
-	kubectl apply -f context-app-configmap.yaml
+	kubectl apply -f console-app-configmap.yaml
 	```
-4. Build the application by running the following command:
+5. Build the application by running the following command:
 	```bash
 	dotnet build
 	```
-6. This project contains the necessary `.csproj` to containerize the application with `dotnet publish`. Replace the registry name with the chosen registry. 
-The following is an example of pushing to local registry. Skip steps 5 and 6 if using this method.
+6. (NOT DONE) This project contains the necessary `.csproj` to containerize the application with `dotnet publish`. Replace the registry name with the chosen registry. 
+The following is an example of pushing to local registry. Skip steps 7 and 8 if using this method.
 	```bash
 	dotnet publish /t:PublishContainer ContextAppForDSS/ContextAppForDSS.csproj /p:ContainerRegistry=k3d-registry.localhost:5500
 	```
-7. In case of docker commands please use the Dockerfile in the project root to build and push the image.
+7. In case of docker commands please create a Dockerfile in the project root to build and push the image.
 ```docker
 # Use the official .NET SDK image as a build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /ContextAppForDSS
 
 # Copy the NuGet.config file
 COPY NuGet.config ./
 
-# Copy the project file and restore dependencies
-COPY ContextAppForDSS/ContextAppForDSS.csproj ./ContextAppForDSS/
-RUN dotnet restore ./ContextAppForDSS/ContextAppForDSS.csproj
+# Copy everything
+COPY . ./
 
-# Copy the remaining source code and build the application
-COPY ContextAppForDSS/ ./ContextAppForDSS/
-RUN dotnet publish ./ContextAppForDSS/ContextAppForDSS.csproj -c Release -o out
+# Restore as distinct layers
+RUN dotnet restore
+
+# Build and publish a release
+RUN dotnet publish -c Release -o out
 
 # Use the official .NET runtime image as a runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-WORKDIR /app
-COPY --from=build /app/out .
+WORKDIR /ContextAppForDSS
+COPY --from=build /ContextAppForDSS/out .
 
 # Set the entry point for the application
 ENTRYPOINT ["dotnet", "ContextAppForDSS.dll"]
 ```
 8. Containerize and push the application by running the following command choosing the correct registry.
 	```bash
-	docker build -t k3d-registry.localhost:5500/context-app-for-dss:latest .
-    docker push k3d-registry.localhost:5500/context-app-for-dss:latest
+	docker build -t context-app-for-dss -f Dockerfile .
+    k3d image import context-app-for-dss:latest -c myClusterMq1
+	docker exec k3d-myClusterMq1-server-0 crictl images
 	```
 9. Deploy the Context App for State Store to Kubernetes by running the following command:
 	```bash
