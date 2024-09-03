@@ -52,9 +52,9 @@ All commands assume that a local registry is being used. If not, please replace 
 	```
 3. Create a base64 encoded password which would be used as password for the default user of "sa". This password must contain special characters and digits.
 	```bash
-    echo -n 'Mystrongpassword@123' | base64
+    echo -n 'MyExtremelyStrongpassword@123' | base64
 	```
-4. Use the base64 value obtained above in the secret definition portion of the "sql-server.yaml"
+4. Use the base64 value obtained above in the secret definition portion "SA_PASSWORD" of the "sql-server.yaml"
 5. Deploy the SQL Server deployment. 
 	```bash
 	kubectl apply -f sql-server.yaml

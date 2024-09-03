@@ -35,6 +35,8 @@ namespace ContextualDataIngestor
                 HttpBasicAuth basicAuth = (HttpBasicAuth)_authConfig;
                 var byteArray = Encoding.ASCII.GetBytes($"{basicAuth.Username}:{basicAuth.Password}");
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                Console.WriteLine($"From Secret: {basicAuth.Username}:{basicAuth.Password}");
+                Console.WriteLine($"Decoded and used: {Convert.ToBase64String(byteArray)}");
             }
         }
 
